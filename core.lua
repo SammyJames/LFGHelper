@@ -2,10 +2,9 @@
 -- @author: Sammy James
 -- @copyright: MIT
 
-local ADDON_NAME    = ...
-local ADDON_TITLE   = select(2, GetAddOnInfo(ADDON_NAME))
-local ADDON_VERSION = "0.1.0"
-local C_LFGList     = C_LFGList
+local ADDON_NAME  = ...
+local ADDON_TITLE = select(2, GetAddOnInfo(ADDON_NAME))
+local C_LFGList   = C_LFGList
 
 local LFGHelper = LibStub("AceAddon-3.0"):NewAddon(ADDON_NAME, "AceConsole-3.0", "AceEvent-3.0", "AceTimer-3.0",
 	"AceHook-3.0")
