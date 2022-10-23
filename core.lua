@@ -11,8 +11,6 @@ local LFGHelper = LibStub("AceAddon-3.0"):NewAddon(ADDON_NAME, "AceConsole-3.0",
 	"AceHook-3.0")
 LFGHelper.m_Lockouts = {}
 
-local HEROIC_DUNGEON_CATEGORY = 117
-
 local function StringHash(text)
 	local counter = 1
 	local len = string.len(text)
@@ -67,9 +65,11 @@ function LFGHelper:BuildLookupTable()
 	self.m_LookupTable        = {}
 	self.m_ReverseLookupTable = {}
 
-	local activity_handler = function(lut, rlut, activity_id, heroic)
+	local activity_handler = function(self, lut, rlut, activity_id, heroic)
 		local info = C_LFGList.GetActivityInfoTable(activity_id);
 		local name = info.shortName ~= "" and info.shortName or info.fullName;
+
+		--self:Printf("Activity %d %d: %s", activity_id, info.orderIndex, name)
 
 		local key        = MakeKey(name, info.maxNumPlayers, heroic)
 		lut[activity_id] = key
@@ -78,13 +78,14 @@ function LFGHelper:BuildLookupTable()
 
 	local categories = C_LFGList.GetAvailableCategories()
 	for k, category_id in ipairs(categories) do
+		--self:Printf("[------------- Category %d -------------]", category_id)
 		do
 			local activities = C_LFGList.GetAvailableActivities(category_id, 0);
 
 			if #activities > 0 then
 				for _, activity_id in ipairs(activities) do
-					activity_handler(self.m_LookupTable, self.m_ReverseLookupTable,
-						activity_id, category_id == HEROIC_DUNGEON_CATEGORY)
+					activity_handler(self, self.m_LookupTable, self.m_ReverseLookupTable,
+						activity_id, false)
 				end
 			end
 		end
@@ -96,9 +97,12 @@ function LFGHelper:BuildLookupTable()
 			local activities = C_LFGList.GetAvailableActivities(category_id, group_id);
 
 			if #activities > 0 then
+				local name, order_index = C_LFGList.GetActivityGroupInfo(group_id);
+				--self:Printf("[-- Group %d: %s --]", order_index, name)
+
 				for _, activity_id in ipairs(activities) do
-					activity_handler(self.m_LookupTable, self.m_ReverseLookupTable, activity_id,
-						category_id == HEROIC_DUNGEON_CATEGORY)
+					activity_handler(self, self.m_LookupTable, self.m_ReverseLookupTable,
+						activity_id, order_index == 0)
 				end
 			end
 		end
