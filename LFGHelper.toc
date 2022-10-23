@@ -1,0 +1,9 @@
+## Interface: 30400
+## Title: LFGHelper
+## Notes: Prunes locked activities from the LFG window
+## Author: Sammy J. (Maligula - Skyfury)
+## Version: 0.1.0
+## SavedVariables: LFGHelperDB
+
+embeds.xml
+core.lua
