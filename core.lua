@@ -27,12 +27,15 @@ local function MakeKey(name, max_players, heroic)
 end
 
 function LFGHelper:OnEnable()
-	self:BuildLookupTable()
 	self:RegisterEvent("PLAYER_ENTERING_WORLD", "OnEnteringWorld")
 	self:RegisterEvent("UPDATE_INSTANCE_INFO", "OnUpdateInstanceInfo")
+	self:RegisterEvent("LFG_LIST_AVAILABILITY_UPDATE", "OnLfgAvailable")
 	self:ScheduleRepeatingTimer("UpdateLockoutData", 60)
 
 	self:RawHook("LFGListingActivityView_UpdateActivities", true)
+
+	self:UpdateLockoutData()
+	self:BuildLookupTable()
 end
 
 function LFGHelper:OnDisable()
@@ -47,6 +50,10 @@ function LFGHelper:OnUpdateInstanceInfo(_, ...)
 	self:UpdateLockoutData()
 end
 
+function LFGHelper:OnLfgAvailable(_)
+	self:BuildLookupTable()
+end
+
 function LFGHelper:UpdateLockoutData()
 	self.m_Lockouts = {}
 
@@ -55,8 +62,8 @@ function LFGHelper:UpdateLockoutData()
 	for i = 1, num_saved do
 		local name, id, _, _, _, _, _, is_raid, max_players, _, _, _, _ = GetSavedInstanceInfo(i)
 		-- treat any saved instance that isn't a raid as a heroic dungeon for now
-		local h = MakeKey(name, max_players, not is_raid)
-		self.m_Lockouts[h] = id
+		local key = MakeKey(name, max_players, not is_raid)
+		self.m_Lockouts[key] = id
 	end
 end
 
@@ -64,27 +71,23 @@ function LFGHelper:BuildLookupTable()
 	self.m_LookupTable        = {}
 	self.m_ReverseLookupTable = {}
 
-	local activity_handler = function(self, lut, rlut, activity_id, heroic)
+	local activity_handler = function(self, activity_id, heroic)
 		local info = C_LFGList.GetActivityInfoTable(activity_id);
 		local name = info.shortName ~= "" and info.shortName or info.fullName;
 
-		--self:Printf("Activity %d %d: %s", activity_id, info.orderIndex, name)
-
-		local key        = MakeKey(name, info.maxNumPlayers, heroic)
-		lut[activity_id] = key
-		rlut[key]        = activity_id
+		local key                       = MakeKey(name, info.maxNumPlayers, heroic)
+		self.m_LookupTable[activity_id] = key
+		self.m_ReverseLookupTable[key]  = activity_id
 	end
 
 	local categories = C_LFGList.GetAvailableCategories()
-	for k, category_id in ipairs(categories) do
-		--self:Printf("[------------- Category %d -------------]", category_id)
+	for _, category_id in ipairs(categories) do
 		do
 			local activities = C_LFGList.GetAvailableActivities(category_id, 0);
 
 			if #activities > 0 then
 				for _, activity_id in ipairs(activities) do
-					activity_handler(self, self.m_LookupTable, self.m_ReverseLookupTable,
-						activity_id, false)
+					activity_handler(self, activity_id, false)
 				end
 			end
 		end
@@ -97,11 +100,9 @@ function LFGHelper:BuildLookupTable()
 
 			if #activities > 0 then
 				local name, order_index = C_LFGList.GetActivityGroupInfo(group_id);
-				--self:Printf("[-- Group %d: %s --]", order_index, name)
 
 				for _, activity_id in ipairs(activities) do
-					activity_handler(self, self.m_LookupTable, self.m_ReverseLookupTable,
-						activity_id, order_index == 0)
+					activity_handler(self, activity_id, order_index == 0)
 				end
 			end
 		end
