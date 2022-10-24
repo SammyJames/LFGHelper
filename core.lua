@@ -100,9 +100,8 @@ function LFGHelper:BuildLookupTable()
 
 			if #activities > 0 then
 				local name, order_index = C_LFGList.GetActivityGroupInfo(group_id);
-
 				for _, activity_id in ipairs(activities) do
-					activity_handler(self, activity_id, order_index == 0)
+					activity_handler(self, activity_id, order_index == 2)
 				end
 			end
 		end
