@@ -2,7 +2,7 @@
 ## Title: LFGHelper
 ## Notes: Prunes locked activities from the LFG window
 ## Author: Sammy J. (Maligula - Skyfury)
-## Version: 1.0.1
+## Version: 1.0.2
 ## SavedVariables: LFGHelperDB
 
 embeds.xml

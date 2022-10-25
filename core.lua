@@ -61,7 +61,7 @@ function LFGHelper:RegisterHook()
 			self:RegisterHook()
 		end, 10)
 	else
-		self:RawHook("LFGListingActivityView_UpdateActivities", true)
+		self:SecureHook("LFGListingActivityView_UpdateActivities")
 		self:Print("Successfully hooked Update Activities")
 	end
 end
@@ -121,8 +121,6 @@ function LFGHelper:BuildLookupTable()
 end
 
 function LFGHelper:LFGListingActivityView_UpdateActivities(widget, category_id)
-	self.hooks.LFGListingActivityView_UpdateActivities(widget, category_id)
-
 	local to_remove = {}
 	local dp        = widget.ScrollBox:GetDataProvider()
 	dp:ForEach(function(node)
