@@ -5,6 +5,7 @@
 local ADDON_NAME  = ...
 local ADDON_TITLE = select(2, GetAddOnInfo(ADDON_NAME))
 local C_LFGList   = C_LFGList
+local _G          = _G
 
 local LFGHelper = LibStub("AceAddon-3.0"):NewAddon(ADDON_NAME, "AceConsole-3.0", "AceEvent-3.0", "AceTimer-3.0",
 	"AceHook-3.0")
@@ -32,8 +33,7 @@ function LFGHelper:OnEnable()
 	self:RegisterEvent("LFG_LIST_AVAILABILITY_UPDATE", "OnLfgAvailable")
 	self:ScheduleRepeatingTimer("UpdateLockoutData", 60)
 
-	self:RawHook("LFGListingActivityView_UpdateActivities", true)
-
+	self:RegisterHook()
 	self:UpdateLockoutData()
 	self:BuildLookupTable()
 end
@@ -52,6 +52,18 @@ end
 
 function LFGHelper:OnLfgAvailable(_)
 	self:BuildLookupTable()
+end
+
+function LFGHelper:RegisterHook()
+	if _G.LFGListingActivityView_UpdateActivities == nil then
+		self:Print("Update Activities function doesn't exist waiting for 10 seconds...")
+		self:ScheduleTimer(function(...)
+			self:RegisterHook()
+		end, 10)
+	else
+		self:RawHook("LFGListingActivityView_UpdateActivities", true)
+		self:Print("Successfully hooked Update Activities")
+	end
 end
 
 function LFGHelper:UpdateLockoutData()
